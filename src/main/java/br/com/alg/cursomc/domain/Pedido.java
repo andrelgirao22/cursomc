@@ -101,6 +101,10 @@ public class Pedido implements Serializable {
 	public void setEnderecoDeEntrega(Endereco enderecoDeEntrega) {
 		this.enderecoDeEntrega = enderecoDeEntrega;
 	}
+	
+	public double getValorTotal() {
+		return itens.stream().mapToDouble(item -> item.getSubTotal()).sum();
+	}
 
 	@Override
 	public int hashCode() {

@@ -43,6 +43,9 @@ public class PedidoService {
 				+ ", Tipo: " + Pedido.class.getName()));
 	}
 
+	@Autowired
+	private EmailService emailService;
+	
 	@Transactional
 	public Pedido insert(Pedido obj) {
 		
@@ -70,8 +73,7 @@ public class PedidoService {
 		}
 		
 		this.itemPedidoRepository.saveAll(obj.getItens());
-		
-		System.out.println(obj);
+		this.emailService.sendOrderConfirmationEmail(obj);
 		
 		return obj;
 	}

@@ -23,6 +23,9 @@ public class PedidoService {
 	private PedidoRepository repository;
 	
 	@Autowired
+	private ClienteService clienteService;
+	
+	@Autowired
 	private BoletoService boletoService;
 	
 	@Autowired
@@ -46,6 +49,8 @@ public class PedidoService {
 		obj.setId(null);
 		obj.setInstante(new Date());
 		
+		obj.setCliente(this.clienteService.find(obj.getCliente().getId()));
+		
 		obj.getPagamento().setEstado(EstadoPagamento.PENDENTE);
 		obj.getPagamento().setPedido(obj);
 		if(obj.getPagamento() instanceof PagamentoComBoleto) {
@@ -58,12 +63,15 @@ public class PedidoService {
 		this.pagamentoRepository.save(obj.getPagamento());
 		for(ItemPedido item: obj.getItens()) {
 			item.setDesconto(0.0);
-			Double preco = this.produtoService.find(item.getProduto().getId()).getPreco();
+			item.setProduto(this.produtoService.find(item.getProduto().getId()));
+			Double preco = item.getProduto().getPreco();
 			item.setPreco(preco);
 			item.setPedido(obj);
 		}
 		
 		this.itemPedidoRepository.saveAll(obj.getItens());
+		
+		System.out.println(obj);
 		
 		return obj;
 	}

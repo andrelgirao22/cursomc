@@ -22,9 +22,13 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import br.com.alg.cursomc.domain.Cliente;
+import br.com.alg.cursomc.domain.enums.TipoPerfil;
 import br.com.alg.cursomc.dto.ClienteDTO;
 import br.com.alg.cursomc.dto.ClienteNewDTO;
+import br.com.alg.cursomc.security.UserSS;
 import br.com.alg.cursomc.services.ClienteService;
+import br.com.alg.cursomc.services.UserService;
+import br.com.alg.cursomc.services.exceptions.AuthorizationException;
 
 @RestController
 @RequestMapping(value="/clientes")
@@ -36,9 +40,16 @@ public class ClienteResource {
 	@GetMapping(value="/{id}")
 	public ResponseEntity<Cliente> find(@PathVariable("id") Integer id) {
 		
-		Cliente Cliente = this.service.find(id);
 		
-		return ResponseEntity.ok(Cliente);
+		UserSS user = UserService.authenticated();
+		
+		Cliente cliente = this.service.find(id);
+		
+		if(user == null || !user.hasRole(TipoPerfil.ADMIN) || !user.getId().equals(cliente.getId())) {
+			throw new AuthorizationException("Acesso negado");
+		}
+		
+		return ResponseEntity.ok(cliente);
 	}
 	
 	@PreAuthorize("hasAnyHole('ADMIN')")

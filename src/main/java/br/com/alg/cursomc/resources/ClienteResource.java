@@ -45,7 +45,7 @@ public class ClienteResource {
 		
 		Cliente cliente = this.service.find(id);
 		
-		if(user == null || !user.hasRole(TipoPerfil.ADMIN) || !user.getId().equals(cliente.getId())) {
+		if(user == null || !user.hasRole(TipoPerfil.ADMIN) && !user.getId().equals(cliente.getId())) {
 			throw new AuthorizationException("Acesso negado");
 		}
 		

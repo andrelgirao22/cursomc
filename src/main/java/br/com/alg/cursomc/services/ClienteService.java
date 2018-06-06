@@ -18,10 +18,13 @@ import br.com.alg.cursomc.domain.Cidade;
 import br.com.alg.cursomc.domain.Cliente;
 import br.com.alg.cursomc.domain.Endereco;
 import br.com.alg.cursomc.domain.enums.TipoCliente;
+import br.com.alg.cursomc.domain.enums.TipoPerfil;
 import br.com.alg.cursomc.dto.ClienteDTO;
 import br.com.alg.cursomc.dto.ClienteNewDTO;
 import br.com.alg.cursomc.repositories.ClienteRepository;
 import br.com.alg.cursomc.repositories.EnderecoRepository;
+import br.com.alg.cursomc.security.UserSS;
+import br.com.alg.cursomc.services.exceptions.AuthorizationException;
 import br.com.alg.cursomc.services.exceptions.DataIntegrityException;
 import br.com.alg.cursomc.services.exceptions.ObjectNotFoundException;
 
@@ -41,8 +44,16 @@ public class ClienteService {
 	private S3Service s3Service;
 	
 	public Cliente find(Integer id) {
-		Optional<Cliente> categoria = this.repository.findById(id);
-		return categoria.orElseThrow(() -> new ObjectNotFoundException("Objeto nao encontrado! Id: " + id
+		
+		UserSS user = UserService.authenticated();
+		
+		Optional<Cliente> cliente = this.repository.findById(id);
+		
+		if(user == null || !user.hasRole(TipoPerfil.ADMIN) && !user.getId().equals(id)) {
+			throw new AuthorizationException("Acesso negado");
+		}
+		
+		return cliente.orElseThrow(() -> new ObjectNotFoundException("Objeto nao encontrado! Id: " + id
 				+ ", Tipo: " + Cliente.class.getName()));
 	}
 
@@ -114,7 +125,18 @@ public class ClienteService {
 	}
 	
 	public URI uploadProfilePicture(MultipartFile multipartFile) {
-		return this.s3Service.uploadFile(multipartFile);
+		
+		UserSS user = UserService.authenticated();
+		if(user == null) {
+			throw new AuthorizationException("Acesso negado");
+		}
+		
+		URI uri = this.s3Service.uploadFile(multipartFile); 
+		
+		Cliente cliente = this.find(user.getId());
+		cliente.setImageUrl(uri.toString());
+		this.repository.save(cliente);
+		return uri;
 	}
 	
 }

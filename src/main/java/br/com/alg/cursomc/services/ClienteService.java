@@ -1,5 +1,6 @@
 package br.com.alg.cursomc.services;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 
@@ -11,6 +12,7 @@ import org.springframework.data.domain.Sort.Direction;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import br.com.alg.cursomc.domain.Cidade;
 import br.com.alg.cursomc.domain.Cliente;
@@ -34,6 +36,9 @@ public class ClienteService {
 	
 	@Autowired
 	private BCryptPasswordEncoder passwordEncoder;
+	
+	@Autowired
+	private S3Service s3Service;
 	
 	public Cliente find(Integer id) {
 		Optional<Cliente> categoria = this.repository.findById(id);
@@ -108,6 +113,8 @@ public class ClienteService {
 		return this.repository.findByEmail(email);
 	}
 	
-	
+	public URI uploadProfilePicture(MultipartFile multipartFile) {
+		return this.s3Service.uploadFile(multipartFile);
+	}
 	
 }

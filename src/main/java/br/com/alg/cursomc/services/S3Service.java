@@ -18,6 +18,8 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 
+import br.com.alg.cursomc.services.exceptions.FileException;
+
 @Service
 public class S3Service {
 
@@ -37,29 +39,22 @@ public class S3Service {
 			String contentType = multipartFile.getContentType();
 			return uploadFile(is, fileName, contentType);
 		} catch (IOException e) {
-			throw new RuntimeException("Erro de IO " + e.getMessage());
+			throw new FileException("Erro de IO " + e.getMessage());
 		}	
 	}
 	
 	public URI uploadFile(InputStream is, String fileName, String contentType) {
-		try {
-			ObjectMetadata meta = new ObjectMetadata();
-			meta.setContentType(contentType);
-			LOG.info("Upload iniciado");
-			s3Client.putObject(new PutObjectRequest(bucketName, fileName, is, meta));
-			LOG.info("Upload finalizado");
-		} catch (AmazonServiceException e) {
-			LOG.info("AmazonServiceException " + e.getMessage());
-			LOG.info("Status code: " + e.getErrorCode());
-			
-		} catch (AmazonClientException  e) {
-			LOG.info("AmazonServiceException " + e.getMessage());
-		}
+		
+		ObjectMetadata meta = new ObjectMetadata();
+		meta.setContentType(contentType);
+		LOG.info("Upload iniciado");
+		s3Client.putObject(new PutObjectRequest(bucketName, fileName, is, meta));
+		LOG.info("Upload finalizado");
 		
 		try {
 			return s3Client.getUrl(bucketName, fileName).toURI();
 		} catch (URISyntaxException e) {
-			throw new RuntimeException("Erro ao converte URL para URI");
+			throw new FileException("Erro ao converte URL para URI");
 		}
 	}
 	

@@ -94,6 +94,20 @@ public class ClienteService {
 		return this.repository.findAll();
 	}
 	
+	public Cliente findByEmail(String email) {
+		UserSS user = UserService.authenticated();
+		if(user == null || (!user.hasRole(TipoPerfil.ADMIN) && !email.equals(user.getUsername()))) {
+			throw new AuthorizationException("Acesso negado");
+		}
+		
+		Cliente obj = this.repository.findByEmail(email);
+		if(obj ==null) {					
+			throw new ObjectNotFoundException("Objeto nao encontrado! Id: " + user.getId() + ", Tipo: " + Cliente.class.getName());
+		}
+
+		return obj;
+	}
+	
 	public Page<Cliente> findPage(Integer page, Integer linesPerPage, String orderby, String direction) {
 		PageRequest pageRequest = PageRequest.of(page, linesPerPage, Direction.valueOf(direction), orderby);
 		return repository.findAll(pageRequest);
@@ -130,10 +144,6 @@ public class ClienteService {
 		obj =  repository.save(obj);
 		enderecoRepository.saveAll(obj.getEnderecos());
 		return obj;
-	}
-
-	public Cliente findByEmail(String email) {
-		return this.repository.findByEmail(email);
 	}
 	
 	public URI uploadProfilePicture(MultipartFile multipartFile) {

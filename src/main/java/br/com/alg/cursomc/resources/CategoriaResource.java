@@ -24,6 +24,9 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import br.com.alg.cursomc.domain.Categoria;
 import br.com.alg.cursomc.dto.CategoriaDTO;
 import br.com.alg.cursomc.services.CategoriaService;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 
 @RestController
 @RequestMapping(value="/categorias")
@@ -53,6 +56,7 @@ public class CategoriaResource {
 		return ResponseEntity.ok(listDto);
 	}
 	
+	@ApiOperation(value="Buca por Id")
 	@GetMapping(value="/{id}")
 	public ResponseEntity<Categoria> find(@PathVariable("id") Integer id) {
 		
@@ -89,6 +93,10 @@ public class CategoriaResource {
 	
 	@PreAuthorize("hasAnyRole('ADMIN')")
 	@DeleteMapping("/{id}")
+	@ApiResponses(value = {
+			@ApiResponse(code = 400, message = "Não é possível excluir uma categoria que possui produtos"),  
+			@ApiResponse(code = 404, message = "Código inexistente")
+		}) 
 	public ResponseEntity<Void> delete(@PathVariable("id") Integer id) {
 		this.service.delete(id);
 		return ResponseEntity.noContent().build();
